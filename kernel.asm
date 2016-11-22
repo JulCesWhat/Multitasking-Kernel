@@ -11,37 +11,47 @@ bits 16
 ; us into memory).
 org	0x100
 
+
+
+
 section	.text
 start:
 	; Print programmer information
 	mov ah, 0x09
 	mov dx, info
 	int 0x21
-
-.setUP:
-	mov sp, stack_array
-	mov cx, 0
-	mov ax, 288
 	
 	
-	; Terminate program
-	mov	ah, 0x4C			; DOS API Function number (terminate with status code)
-	mov	al, 0				; Parameter (status code 0 == success)
-	int	0x21				; Call DOS
-
+	mov sp, 0x200
+	push startT2
+	pushf
+	pusha
 	
-startTO:
+	
+	mov [saved_sp], sp
+	mov sp, 0x300
+	push startT1
+	pushf
+	pusha
+	
+	
+	popa
+	popf
+	
+startT1:
 	mov ah, 0x09
 	mov dx, taskOne
 	int 0x21
-	jmp .startTO
+	call yield
+	jmp startT1
 	
 
-startTT:
+startT2:
 	mov ah, 0x09
 	mov dx, taskTwo
 	int 0x21
-	jmp .startTT
+	call yield
+	jmp startT2
 	
 	
 
@@ -50,16 +60,14 @@ yield:
 	pushf ;push the flags 
 	pusha ; push all GPRs 
 	; switch stacks 
-	mov [saved_sp_1], sp 
-	mov sp, [saved_sp_2] 
+	xchg [saved_sp], sp 
 	popa 
 	popf 
 	ret
 	
 section	.data
-saved_sp_1 db 0
-saved_sp_2 db 0
+saved_sp dw 0
+saved_sp_2 dw 0
 taskOne db 13, 10, "task one", 13, 10, "$"
 taskTwo db 13, 10, "task two", 13, 10, "$"
 info db 13, 10, "CpS 230 Lab 4: Julio C W. College-Student (jwhat331)", 13, 10, "$"
-stack_array TIMES 4608 db 0
