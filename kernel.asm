@@ -11,9 +11,6 @@ bits 16
 ; us into memory).
 org	0x100
 
-
-
-
 section	.text
 start:
 	; Print programmer information
