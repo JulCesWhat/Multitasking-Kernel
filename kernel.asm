@@ -11,6 +11,9 @@ bits 16
 ; us into memory).
 org	0x100
 
+stack_A	TIMES 256 db 0
+stack_B	TIMES 256 db 0
+
 section	.text
 start:
 	; Print programmer information
@@ -19,15 +22,15 @@ start:
 	int 0x21
 	
 	
-	mov sp, 0x200
-	push startT2
+	mov sp, stack_A + stack_size
+	push task_A
 	pushf
 	pusha
 	
 	
 	mov [saved_sp], sp
-	mov sp, 0x300
-	push startT1
+	mov sp, task_B + stack_size
+	push task_B
 	pushf
 	pusha
 	
@@ -35,20 +38,20 @@ start:
 	popa
 	popf
 	
-startT1:
+task_B:
 	mov ah, 0x09
-	mov dx, taskOne
+	mov dx, msg_B
 	int 0x21
 	call yield
-	jmp startT1
+	jmp task_B
 	
-
-startT2:
+task_A:
 	mov ah, 0x09
-	mov dx, taskTwo
+	mov dx, msg_A
 	int 0x21
 	call yield
-	jmp startT2
+	jmp task_A
+	
 	
 	
 
@@ -63,8 +66,8 @@ yield:
 	ret
 	
 section	.data
+stack_size equ 256
 saved_sp dw 0
-saved_sp_2 dw 0
-taskOne db 13, 10, "task one", 13, 10, "$"
-taskTwo db 13, 10, "task two", 13, 10, "$"
+msg_A db 13, 10, "task one", 13, 10, "$"
+msg_B db 13, 10, "task two", 13, 10, "$"
 info db 13, 10, "CpS 230 Lab 4: Julio C W. College-Student (jwhat331)", 13, 10, "$"
