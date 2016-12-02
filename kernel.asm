@@ -95,4 +95,5 @@ stack_size equ 256
 saved_sp dw 0
 msg_A db 13, 10, "task one", 13, 10, 0
 msg_B db 13, 10, "task two", 13, 10, 0
-info db 13, 10, "CpS 230 Lab 4: Julio C W. College-Student (jwhat331)", 13, 10, 0
+info db 13, 10, "CpS 230 Team Project Beta:", 13, 10, 0
+	 db	"by Team Chispitas", 13, 10, 0

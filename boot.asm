@@ -17,8 +17,8 @@ org	0x7C00
 start:	jmp	main
 
 ; Embedded data
-boot_msg	db	"CpS 230 Bootloading Lab", 13, 10
-		db	"by Julio Cesar Whatley", 13, 10, 0
+boot_msg	db	"CpS 230 Team Project Beta", 13, 10
+		db	"by Team Chispitas", 13, 10, 0
 boot_disk	db	0		; Variable to store the number of the disk we boot from
 retry_msg	db	"Error reading payload from disk; retrying...", 13, 10, 0
 
