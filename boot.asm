@@ -17,8 +17,8 @@ org	0x7C00
 start:	jmp	main
 
 ; Embedded data
-boot_msg	db	"CpS 230 Team Project Beta", 13, 10
-		db	"by Team Chispitas", 13, 10, 0
+boot_msg	db	"CpS 230 Bootloading Lab", 13, 10
+		db	"by Julio Cesar Whatley", 13, 10, 0
 boot_disk	db	0		; Variable to store the number of the disk we boot from
 retry_msg	db	"Error reading payload from disk; retrying...", 13, 10, 0
 
@@ -32,27 +32,35 @@ main:
 	; Set DS == CS (so data addressing is normal/easy)
 	mov ax, cs
 	mov ds, ax
-	; Save the boot disk number (we get it in register DL)
-	mov byte[boot_disk], dl
+
 	; Set SS == 0x0800 (which will be the segment we load everything into later)
 	mov ax, 0x0800
 	mov ss, ax
 	; Set SP == 0x0000 (stack pointer starts at the TOP of segment; first push decrements by 2, to 0xFFFE)
-	mov sp, 0x0000
+	;mov sp, 0x0000
+	xor	sp, sp
+	
+	; Save the boot disk number (we get it in register DL)
+	mov byte[boot_disk], dl
+	
 	; Print the boot message/banner
 	mov	dx, boot_msg
 	call	puts
+	
 	call 	GetPressedKey
+	
 	; use BIOS raw disk I/O to load sector 2 from disk number <boot_disk> into memory at 0800:0000h (retry on failure)
-	mov ax, 0x0202
-	mov ch, 0
-	mov cl, 2
-	mov dh, 0
+	mov ah, 02h
+	mov al, 30 ;sectors to read
+	mov ch, 0  ;track
+	mov cl, 2  ;sector id
+	mov dh, 0  ; head
 	mov dl, byte[boot_disk]
 	mov bx, 0x0800
 	mov es, bx
-	mov bx, 0x0000
+	mov bx, 0
 	int    0x13
+	
 	;compare carry flag to 0 for success or failure
 	jnc .success
 	mov dx, retry_msg
