@@ -15,10 +15,6 @@ org	0
 IVT8_OFFSET_SLOT	equ	4 * 8			; Each IVT entry is 4 bytes; this is the 8th
 IVT8_SEGMENT_SLOT	equ	IVT8_OFFSET_SLOT + 2	; Segment after Offset
 
-stack_A	TIMES 256 db 0
-stack_B	TIMES 256 db 0
-stack_C	TIMES 256 db 0
-
 
 section	.text
 start:
@@ -41,9 +37,21 @@ start:
 	pusha
 	push ds
 	push es
+	;mov [saved_sp], sp
+	mov [stack_SP + 4], sp
+		
+	mov sp, stack_C + stack_size
+	pushf
+	push cs
+	push task_C
+	pusha
+	push ds
+	push es	
+	mov [stack_SP + 2], sp
 	
-	mov [saved_sp], sp
+	
 	mov sp, stack_B + stack_size
+	mov [stack_SP], sp
 	
 	
 	; TODO Install interrupt hook
@@ -74,6 +82,12 @@ task_A:
 	;call yield
 	jmp task_A
 	
+task_C:
+	mov dx, msg_C
+	call puts
+	;call yield
+	jmp task_C
+	
 
 ; INT 8 Timer ISR (interrupt service routine)
 ; cannot clobber anything; must CHAIN to original caller (for interrupt acknowledgment)
@@ -86,7 +100,32 @@ timer_isr:
 	pusha
 	push ds
 	push es	
-	xchg [saved_sp], sp 
+	
+	
+	mov ax, [num_sp]
+	shl ax, 1
+	mov bx, ax
+	mov [stack_SP + bx], sp 
+	mov ax, [num_sp]
+	add ax, 1
+	mov [num_sp], ax
+	cmp ax, 3
+	jne .change_sp
+	mov ax, 0
+	mov [num_sp], ax
+	
+.change_sp:
+	mov ax, [num_sp]
+	
+	shl ax, 1
+	mov bx, ax 
+	mov sp, [stack_SP + bx]
+
+	;xchg [stack_SP + si], sp 
+	
+	;xchg [saved_sp], sp 
+	
+	
 	pop es
 	pop ds
 	popa
@@ -122,11 +161,20 @@ puts:
 	
 	
 section	.data
+
+stack_A	TIMES 256 dw 0
+stack_B	TIMES 256 dw 0
+stack_C	TIMES 256 dw 0
+stack_SP	TIMES 32 dw 0
+
+
 ivt8_offset	dw	0
 ivt8_segment	dw	0
 
 stack_size equ 256
+num_sp dw 0
 saved_sp dw 0
 msg_A db 13, 10, "task one", 13, 10, 0
 msg_B db 13, 10, "task two", 13, 10, 0
+msg_C db 13, 10, "task three", 13, 10, 0
 info db 13, 10, "CpS 230 Lab 4: Julio C W. College-Student (jwhat331)", 13, 10, 0
