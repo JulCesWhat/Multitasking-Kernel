@@ -38,12 +38,21 @@ start:
 	push ds
 	push es
 	;mov [saved_sp], sp
-	mov [stack_SP + 4], sp
+	mov [stack_SP + 6], sp
 		
 	mov sp, stack_C + stack_size
 	pushf
 	push cs
 	push task_C
+	pusha
+	push ds
+	push es	
+	mov [stack_SP + 4], sp
+
+	mov sp, stack_D + stack_size
+	pushf
+	push cs
+	push task_D
 	pusha
 	push ds
 	push es	
@@ -87,6 +96,12 @@ task_C:
 	call puts
 	;call yield
 	jmp task_C
+
+task_D:
+	mov dx, msg_D
+	call puts
+	;call yield
+	jmp task_D
 	
 
 ; INT 8 Timer ISR (interrupt service routine)
@@ -102,29 +117,21 @@ timer_isr:
 	push es	
 	
 	
-	mov ax, [num_sp]
-	shl ax, 1
-	mov bx, ax
+	mov bx, [num_sp]
+	shl bx, 1
 	mov [stack_SP + bx], sp 
-	mov ax, [num_sp]
-	add ax, 1
-	mov [num_sp], ax
-	cmp ax, 3
+	mov bx, [num_sp]
+	add bx, 1
+
+	cmp bx, 4
 	jne .change_sp
-	mov ax, 0
-	mov [num_sp], ax
+	mov bx, 0
 	
 .change_sp:
-	mov ax, [num_sp]
-	
-	shl ax, 1
-	mov bx, ax 
-	mov sp, [stack_SP + bx]
+	mov [num_sp], bx
+	shl bx, 1
 
-	;xchg [stack_SP + si], sp 
-	
-	;xchg [saved_sp], sp 
-	
+	mov sp, [stack_SP + bx]	
 	
 	pop es
 	pop ds
@@ -165,8 +172,8 @@ section	.data
 stack_A	TIMES 256 dw 0
 stack_B	TIMES 256 dw 0
 stack_C	TIMES 256 dw 0
+stack_D	TIMES 256 dw 0
 stack_SP	TIMES 32 dw 0
-
 
 ivt8_offset	dw	0
 ivt8_segment	dw	0
@@ -177,4 +184,5 @@ saved_sp dw 0
 msg_A db 13, 10, "task one", 13, 10, 0
 msg_B db 13, 10, "task two", 13, 10, 0
 msg_C db 13, 10, "task three", 13, 10, 0
+msg_D db 13, 10, "task four", 13, 10, 0
 info db 13, 10, "CpS 230 Lab 4: Julio C W. College-Student (jwhat331)", 13, 10, 0
