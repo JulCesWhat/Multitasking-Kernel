@@ -1,6 +1,6 @@
-; CpS 230 Lab 9: Julio Cesar Whatley (Jwhat331)
+; CpS 230 Team Project: Andrew Carter & Cesar Whatley
 ;---------------------------------------------------
-; Bootloader that loads/runs a single-sector payload
+; Bootloader that loads/runs a payload
 ; program from the boot disk.
 ;---------------------------------------------------
 bits 16
@@ -17,8 +17,8 @@ org	0x7C00
 start:	jmp	main
 
 ; Embedded data
-boot_msg	db	"CpS 230 Bootloading Lab", 13, 10
-		db	"by Julio Cesar Whatley", 13, 10, 0
+boot_msg	db	"CpS 230 Bootloader", 13, 10
+		db	"by Julio Whatley and Andrew Carter", 13, 10, 0
 boot_disk	db	0		; Variable to store the number of the disk we boot from
 retry_msg	db	"Error reading payload from disk; retrying...", 13, 10, 0
 
@@ -37,14 +37,14 @@ main:
 	mov ax, 0x0800
 	mov ss, ax
 	; Set SP == 0x0000 (stack pointer starts at the TOP of segment; first push decrements by 2, to 0xFFFE)
-	;mov sp, 0x0000
+	; mov sp, 0x0000
 	xor	sp, sp
 	
 	; Save the boot disk number (we get it in register DL)
 	mov byte[boot_disk], dl
 	
 	; Print the boot message/banner
-	mov	dx, boot_msg
+	mov	    dx, boot_msg
 	call	puts
 	
 	call 	GetPressedKey
@@ -54,7 +54,7 @@ main:
 	mov al, 30 ;sectors to read
 	mov ch, 0  ;track
 	mov cl, 2  ;sector id
-	mov dh, 0  ; head
+	mov dh, 0  ;head
 	mov dl, byte[boot_disk]
 	mov bx, 0x0800
 	mov es, bx
@@ -66,6 +66,7 @@ main:
 	mov dx, retry_msg
 	call puts
 	ret
+    
 .success:
 	; Finally, jump to address 0800h:0000h (sets CS == 0x0800 and IP == 0x0000)
 	jmp	0x0800:0x0000
